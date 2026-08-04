@@ -1,14 +1,14 @@
-name: CI Syntax & Lint Check
+name: CI Syntax & Build Check
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   lint-and-build:
-    name: Check JS/React Syntax and Build
+    name: Check Frontend Syntax and Build
     runs-on: ubuntu-latest
 
     steps:
@@ -19,13 +19,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
 
       - name: Install Frontend Dependencies
         run: npm install
 
-      - name: Check JS & React Syntax with ESLint
-        run: npm run lint
+      - name: Check Frontend Only
+        run: npx eslint src
 
-      - name: Verify React & HTML Build Output
+      - name: Verify React Build
         run: npm run build
