@@ -69,11 +69,6 @@ CMD ["node", "index.js"]
 * **Question**: Why copy `package*.json` and run `npm install` BEFORE `COPY . .`?
 * **Answer**: Docker caches build instructions as immutable layers. Dependencies (`package.json`) change far less frequently than source code. By isolating dependency installation, Docker reuses the cached `npm install` layer during rebuilds, saving time and bandwidth.
 
-### Build Verification Command
-```powershell
-docker build -t expense-backend ./backend
-```
-
 ---
 
 ## Step 3: Dockerizing the Frontend (React + Vite)
@@ -120,9 +115,57 @@ CMD ["npm", "run", "dev", "--", "--host"]
 * **Question**: Why do we pass `--host` to Vite when running in Docker?
 * **Answer**: By default, Vite binds to `127.0.0.1` (localhost INSIDE the container). In a container environment, `127.0.0.1` is isolated from the host machine. Passing `--host` (binding to `0.0.0.0`) makes Vite listen on all network interfaces inside the container so that your host computer's browser can access `http://localhost:5173`.
 
-### Build Verification Command
-```powershell
-docker build -t expense-frontend .
+---
+
+## Step 4: Docker Compose Orchestration
+
+### File Created
+* `docker-compose.yml` (Root)
+
+```yaml
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: expense-backend
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: expense-frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    restart: unless-stopped
 ```
+
+### Key Concepts Breakdown
+
+1. **Services (`services`)**:
+   Defines individual containerized applications managed by Compose. We have two services: `backend` and `frontend`.
+
+2. **Build Context (`build`)**:
+   Specifies the directory (`context`) and `dockerfile` path used to build each container image.
+
+3. **Port Mapping (`ports: "HOST:CONTAINER"`)**:
+   * `"8000:8000"`: Maps host port `8000` to container port `8000`.
+   * `"5173:5173"`: Maps host port `5173` to container port `5173`.
+
+4. **Dependency Order (`depends_on`)**:
+   * Ensures `backend` container starts before `frontend` container launches.
+
+5. **Automatic Default Network**:
+   Docker Compose automatically creates a shared bridge network (e.g. `iexpensetracker_default`) allowing services to communicate with each other using service names (e.g., `http://backend:8000`).
+
+6. **No MongoDB Container**:
+   Since the application connects directly to remote **MongoDB Atlas** over HTTPS/TLS, no local MongoDB database container or persistent database volumes are needed in Compose.
 
 ---
