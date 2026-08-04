@@ -147,25 +147,53 @@ services:
     restart: unless-stopped
 ```
 
-### Key Concepts Breakdown
+---
 
-1. **Services (`services`)**:
-   Defines individual containerized applications managed by Compose. We have two services: `backend` and `frontend`.
+## Step 5: Environment Variables & Networking
 
-2. **Build Context (`build`)**:
-   Specifies the directory (`context`) and `dockerfile` path used to build each container image.
+### 1. Client-Side (React Browser) vs Container Networking
+* **Frontend Execution Location**: Even though React static files are served from inside the `expense-frontend` container, the JavaScript code runs in the user's **web browser** on the host machine.
+* **API Base URL**: Because code runs in the host browser, `src/utils/url.js` calls `http://localhost:8000/api/v1`.
+* **Port Forwarding**: Docker Compose maps host port `8000` -> container port `8000`, so the browser requests seamlessly reach the Express backend container.
 
-3. **Port Mapping (`ports: "HOST:CONTAINER"`)**:
-   * `"8000:8000"`: Maps host port `8000` to container port `8000`.
-   * `"5173:5173"`: Maps host port `5173` to container port `5173`.
+### 🎓 Critical Viva Question: The `localhost` Misconception
+> **Question**: Should React frontend in Docker call `http://backend:8000` or `http://localhost:8000`?
+>
+> **Answer**:
+> * `http://backend:8000` works for **server-to-server** communication inside the Docker network (e.g. Node.js server to Python server).
+> * `http://localhost:8000` is required for **React Single Page Applications (SPAs)** because the HTTP request originates from the **client browser** outside Docker! The browser does not recognize Docker internal DNS names like `backend`.
 
-4. **Dependency Order (`depends_on`)**:
-   * Ensures `backend` container starts before `frontend` container launches.
+---
 
-5. **Automatic Default Network**:
-   Docker Compose automatically creates a shared bridge network (e.g. `iexpensetracker_default`) allowing services to communicate with each other using service names (e.g., `http://backend:8000`).
+## Step 6: Testing & Debugging Workflow
 
-6. **No MongoDB Container**:
-   Since the application connects directly to remote **MongoDB Atlas** over HTTPS/TLS, no local MongoDB database container or persistent database volumes are needed in Compose.
+### 1. Launching Stack with Docker Compose
+```powershell
+docker compose up --build -d
+```
+* `--build`: Forces rebuilding container images if files changed.
+* `-d`: Detached mode (runs containers in the background).
+
+### 2. Checking Status of Containers
+```powershell
+docker ps
+```
+Shows container status, IDs, names (`expense-frontend`, `expense-backend`), and mapped ports (`5173->5173`, `8000->8000`).
+
+### 3. Inspecting Logs
+```powershell
+docker logs expense-backend
+docker logs expense-frontend
+```
+
+### 🎓 Real-World Debugging Case Study: Windows vs Linux Case Sensitivity
+* **Symptom**: Backend crashed inside container with `MODULE_NOT_FOUND: Cannot find module '../controllers/TransactionCtrl'`.
+* **Root Cause**: Windows filesystems are case-insensitive (`TransactionCtrl.js` matches `transactionCtrl.js`). Linux filesystems inside Docker (`Alpine Linux`) are strictly **case-sensitive**.
+* **Fix**: Updated `require("../controllers/TransactionCtrl")` to `require("../controllers/transactionCtrl")`.
+
+### 4. Stopping Containers
+```powershell
+docker compose down
+```
 
 ---
