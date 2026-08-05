@@ -85,9 +85,33 @@ const transactionController = {
     const categoryMap = {};
     const monthlyMap = {};
 
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+    const currentDay = now.getDate() || 1;
+
+    let thisMonthIncome = 0;
+    let thisMonthExpense = 0;
+    let thisMonthTransactionCount = 0;
+    const thisMonthCategoryMap = {};
+
     transactions.forEach((t) => {
       const amt = Number(t.amount) || 0;
       const dateObj = new Date(t.date);
+
+      if (!isNaN(dateObj.getTime())) {
+        if (dateObj.getMonth() === currentMonth && dateObj.getFullYear() === currentYear) {
+          thisMonthTransactionCount++;
+          if (t.type === "income") {
+            thisMonthIncome += amt;
+          } else {
+            thisMonthExpense += amt;
+            const catName = t.category || "Uncategorized";
+            thisMonthCategoryMap[catName] = (thisMonthCategoryMap[catName] || 0) + amt;
+          }
+        }
+      }
+
       const monthKey = isNaN(dateObj.getTime())
         ? "Unknown"
         : dateObj.toLocaleDateString("en-US", { month: "short", year: "numeric" });
@@ -118,6 +142,25 @@ const transactionController = {
     const monthlyData = Object.values(monthlyMap);
     const recentTransactions = transactions.slice(0, 5);
 
+    const thisMonthSavings = thisMonthIncome - thisMonthExpense;
+    const avgDailySpending = Math.round(thisMonthExpense / currentDay);
+
+    let highestCategory = { name: "N/A", amount: 0 };
+    Object.keys(thisMonthCategoryMap).forEach((cat) => {
+      if (thisMonthCategoryMap[cat] > highestCategory.amount) {
+        highestCategory = { name: cat, amount: thisMonthCategoryMap[cat] };
+      }
+    });
+
+    const thisMonthInsights = {
+      thisMonthIncome,
+      thisMonthExpense,
+      thisMonthSavings,
+      highestCategory,
+      totalTransactions: thisMonthTransactionCount,
+      avgDailySpending,
+    };
+
     res.json({
       totalIncome,
       totalExpense,
@@ -126,6 +169,7 @@ const transactionController = {
       monthlyExpenses: monthlyData.map((m) => ({ month: m.month, expense: m.expense })),
       monthlyIncomeVsExpense: monthlyData,
       recentTransactions,
+      thisMonthInsights,
     });
   }),
 };

@@ -5,6 +5,7 @@ import { getAnalyticsAPI } from '../services/transaction/transactionServices'
 import ExpenseCategoryPieChart from './charts/ExpenseCategoryPieChart'
 import MonthlyExpenseBarChart from './charts/MonthlyExpenseBarChart'
 import IncomeVsExpenseLineChart from './charts/IncomeVsExpenseLineChart'
+import FinancialInsights from './FinancialInsights'
 
 export default function Dashboard() {
   const { data: analyticsData, isLoading, isError } = useQuery({
@@ -25,6 +26,9 @@ export default function Dashboard() {
           <div className="text-center py-10 text-red-500 font-semibold">Failed to load analytics data</div>
         ) : (
           <>
+            {/* Financial Insights Card */}
+            <FinancialInsights data={analyticsData?.thisMonthInsights} />
+
             {/* Charts Vertical Stack */}
             <div className="grid grid-cols-1 gap-6 mb-8">
               <ExpenseCategoryPieChart data={analyticsData?.categoryExpenses} />
