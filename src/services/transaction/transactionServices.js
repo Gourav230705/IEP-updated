@@ -40,6 +40,17 @@ export const listTransactionsAPI = async ({category, endDate, startDate, type}) 
   return response.data;
 };
 
+// analytics
+export const getAnalyticsAPI = async () => {
+  const token = getUserFromStorage();
+  const response = await axios.get(`${BASE_URL}/transaction/analytics`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return response.data;
+};
+
 
 
 

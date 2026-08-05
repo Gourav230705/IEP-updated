@@ -65,7 +65,7 @@ const Login = () => {
         <h2 className="text-center mb-4" style={{ color: "#333" }}>Login</h2>
         {/* alerts */}
         {isPending && <AlertMessage type= 'loading' message='Login you in....'/>}
-        {isError && <AlertMessage type= 'error' message={error.response.data.message}/>}
+        {isError && <AlertMessage type= 'error' message={error?.response?.data?.message || error?.message || 'An error occurred'}/>}
         {isSuccess && <AlertMessage type= 'success' message='Login successfully'/>}
 
         <form onSubmit={formik.handleSubmit}>

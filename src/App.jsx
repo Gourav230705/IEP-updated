@@ -12,6 +12,7 @@ import AddCategory from './components/AddCategory'
 import CategoriesList from './components/CategoriesList'
 import TransactionForm from './components/AddTransactions'
 import Dashboard from './components/Dashboard'
+import TransactionHistory from './components/TransactionHistory'
 
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
         <Route path='/categories' element={<CategoriesList/>}/>
         <Route path='/add-transaction' element={<TransactionForm/>}/>
         <Route path='/dashboard' element={<Dashboard/>}/>
+        <Route path='/transactions' element={<TransactionHistory/>}/>
       </Routes>
       </div>
         

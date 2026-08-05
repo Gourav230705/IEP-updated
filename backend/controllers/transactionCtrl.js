@@ -75,7 +75,59 @@ const transactionController = {
       res.json({ message: "Transaction removed" });
     }
   }),
-  
+
+  //! Analytics
+  getAnalytics: asyncHandler(async (req, res) => {
+    const transactions = await Transaction.find({ user: req.user }).sort({ date: -1 });
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+    const categoryMap = {};
+    const monthlyMap = {};
+
+    transactions.forEach((t) => {
+      const amt = Number(t.amount) || 0;
+      const dateObj = new Date(t.date);
+      const monthKey = isNaN(dateObj.getTime())
+        ? "Unknown"
+        : dateObj.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+
+      if (!monthlyMap[monthKey]) {
+        monthlyMap[monthKey] = { month: monthKey, income: 0, expense: 0 };
+      }
+
+      if (t.type === "income") {
+        totalIncome += amt;
+        monthlyMap[monthKey].income += amt;
+      } else {
+        totalExpense += amt;
+        monthlyMap[monthKey].expense += amt;
+
+        const catName = t.category || "Uncategorized";
+        categoryMap[catName] = (categoryMap[catName] || 0) + amt;
+      }
+    });
+
+    const netBalance = totalIncome - totalExpense;
+
+    const categoryExpenses = Object.keys(categoryMap).map((cat) => ({
+      name: cat,
+      value: categoryMap[cat],
+    }));
+
+    const monthlyData = Object.values(monthlyMap);
+    const recentTransactions = transactions.slice(0, 5);
+
+    res.json({
+      totalIncome,
+      totalExpense,
+      netBalance,
+      categoryExpenses,
+      monthlyExpenses: monthlyData.map((m) => ({ month: m.month, expense: m.expense })),
+      monthlyIncomeVsExpense: monthlyData,
+      recentTransactions,
+    });
+  }),
 };
 
 module.exports = transactionController;

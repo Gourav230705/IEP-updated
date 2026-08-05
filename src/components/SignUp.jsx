@@ -70,7 +70,7 @@ export default function SignUp() {
 
         {/* error messages */}
         {isPending && <AlertMessage type= 'loading' message='Login you in....'/>}
-        {isError && <AlertMessage type= 'error' message={error.response.data.message}/>}
+        {isError && <AlertMessage type= 'error' message={error?.response?.data?.message || error?.message || 'An error occurred'}/>}
         {isSuccess && <AlertMessage type= 'success' message='Register successfully'/>}
 
         <form onSubmit={formik.handleSubmit}>

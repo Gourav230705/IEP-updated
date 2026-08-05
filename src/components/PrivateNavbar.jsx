@@ -27,6 +27,7 @@ export default function PublicNavbar() {
         <div className="container-fluid">
           <Link to="/dashboard" className="navbar-brand me-3">iExpenseTracker</Link>
             <Link className="nav-link active" aria-current="page" to="/dashboard">Dashboad</Link>
+            <Link className="nav-link" to="/transactions">Transactions</Link>
             <Link className="nav-link" to="/add-transaction">Add Transaction</Link>
             <Link className="nav-link" to="/addCategories">Add Categories</Link>
             <Link className="nav-link" to="/categories">Categories</Link>
