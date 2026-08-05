@@ -101,6 +101,38 @@ const TransactionList = () => {
           <ChevronDownIcon className="w-5 h-5 absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500" />
         </div>
       </div>
+
+      {/* Export CSV Button */}
+      <div className="my-4 flex justify-end">
+        <button
+          onClick={() => {
+            if (!transactions || transactions.length === 0) return;
+            const headers = ["Date", "Description", "Category", "Type", "Amount"];
+            const rows = transactions.map((t) => [
+              new Date(t.date).toLocaleDateString(),
+              `"${(t.description || "").replace(/"/g, '""')}"`,
+              t.category?.name || "Uncategorized",
+              t.type.charAt(0).toUpperCase() + t.type.slice(1),
+              t.amount,
+            ]);
+            const csvContent = [headers.join(","), ...rows.map((r) => r.join(","))].join("\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "transactions.csv";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }}
+          disabled={!transactions || transactions.length === 0}
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 font-medium shadow"
+        >
+          📥 Export CSV
+        </button>
+      </div>
+
       <div className="my-4 p-4 shadow-lg rounded-lg bg-white">
         {/* Inputs and selects for filtering (unchanged) */}
         <div className="mt-6 bg-gray-50 p-4 rounded-lg shadow-inner">
